@@ -1,0 +1,12 @@
+#Virtual Enviorment
+.venv/
+
+#DataBase
+db/
+
+#Python Cache
+__pycache__/
+*.pyc                   
+
+#Data
+*.pdf
