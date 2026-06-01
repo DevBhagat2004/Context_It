@@ -10,6 +10,7 @@ from generation.llm import generate
 
 def menu():
     print("1. PDF")
+    print("2. Requery")
     print("X Exit")
 
 def getPath():
@@ -29,8 +30,6 @@ def load_pdf(Path):
        
     return data
 
-
-
 def load_Other(path):
     data = []
     with open(path, "r", encoding="utf-8") as f:
@@ -40,8 +39,6 @@ def load_Other(path):
         })
     
     return data
-
-
 
 if __name__ == "__main__":
     print("Hello Please selected which file you want to process")
@@ -101,7 +98,3 @@ if __name__ == "__main__":
         menu()
         option = input ("Your choice --> ")
     print()
-
-
-
-
