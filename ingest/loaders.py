@@ -10,8 +10,6 @@ from generation.llm import generate
 
 def menu():
     print("1. PDF")
-    print("2. MarkDown")
-    print("3. TXT")
     print("X Exit")
 
 def getPath():
@@ -50,31 +48,59 @@ if __name__ == "__main__":
     menu()
     option = input ("Your choice --> ")
     all_data = []
-    while option != 'x':
+    while option.lower() != 'x':
         print()
+        # Load data & query phase
         if (option == '1'):
             all_data.extend(load_pdf(getPath()))
+            # Transforming the pdf
+            all_chunks,sentences = sendData(all_data)
+            # Embedding text
+            embeddings = embed(sentences)
+            # Making the vectordb
+            collection  = storeData(all_chunks, embeddings)
+            #Query phase
+            query = input ("What your query?")
+            #Doing sparse & dense search
+            sparse = BM25(all_chunks, query, 5)
+            dense = dense_search(collection, query, 5)
+            # Fusing results of dense & sparse
+            chunks = fuse(dense, sparse)
+            #generate the out put
+            generate(query,chunks)
+            print()
+            menu()
+        # Re-query case
         elif (option == '2'):
-            all_data.extend(load_Other(getPath()))
-        elif (option == '3'):
-            all_data.extend(load_Other(getPath()))
+            try:
+                if not all_chunks or not collection:
+                    print("One of them is empty or falsy")
+                    print("Please load a document first")
+                    print()
+                    menu()
+            except NameError:
+                print("One of the variables is undefined")
+                print("Please load a document first")
+                print()
+                menu()
+            else:
+                query = input ("What your query?")
+                # Doing sparse & dense search
+                sparse = BM25(all_chunks, query, 5)
+                dense = dense_search(collection, query, 5)
+                # Fusing results of dense & sparse
+                chunks = fuse(dense, sparse)
+                #Generating result
+                generate(query,chunks)
+                print()
+                menu()
+        # Invalid input
         else:
             print("Error, unknown command, try again...")
         print()       
         menu()
         option = input ("Your choice --> ")
     print()
-    all_chunks,sentences = sendData(all_data)
-    embeddings = embed(sentences)
-    collection  = storeData(all_chunks, embeddings)
-    query = input ("What your query?")
-    sparse = BM25(all_chunks, query, 5)
-    print("------------------------------------------------------------------")
-    dense = dense_search(collection, query, 5)
-
-    chunks = fuse(dense, sparse)
-
-    generate(query,chunks)
 
 
 
