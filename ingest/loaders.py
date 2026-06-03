@@ -1,4 +1,4 @@
-#import  bs4, os, pathlib
+import  os
 from pypdf import PdfReader
 from ingest.chunker import sendData
 from embeddings.embedder import embed
@@ -14,11 +14,15 @@ def menu():
     print("X Exit")
 
 def getPath():
-    return input("Filepath --> ")
+    name = input("File Name --> ")
+    base_dir = os.getcwd()
+    file_path = os.path.join(base_dir,"documents",f"{name}")
+    return file_path
     
 
 def load_pdf(Path):
     data = []
+
     reader = PdfReader(Path)
     for i in range(len(reader.pages)):
         text = reader.pages[i].extract_text()
