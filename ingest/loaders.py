@@ -34,67 +34,47 @@ def load_pdf(Path):
        
     return data
 
-def load_Other(path):
-    data = []
-    with open(path, "r", encoding="utf-8") as f:
-        data.append({
-            "text": f.read(),
-            "metadata": {"source":path,"page":1}
-        })
-    
-    return data
+def dbFlow(all_data):
+    all_data.extend(load_pdf(getPath()))
+    all_chunks,sentences = sendData(all_data)
+    embeddings = embed(sentences)
+    collection  = storeData(all_chunks, embeddings)
+    return all_chunks, collection
+
+def searchFlow(all_chunks, collection, query, size):
+    sparse = BM25(all_chunks, query, size)
+    dense = dense_search(collection, query, size)
+    return fuse(dense, sparse)
 
 if __name__ == "__main__":
     print("Hello Please selected which file you want to process")
     menu()
     option = input ("Your choice --> ")
     all_data = []
+    all_chunks = []
+    collection = None
     while option.lower() != 'x':
         print()
         # Load data & query phase
         if (option == '1'):
-            all_data.extend(load_pdf(getPath()))
-            # Transforming the pdf
-            all_chunks,sentences = sendData(all_data)
-            # Embedding text
-            embeddings = embed(sentences)
-            # Making the vectordb
-            collection  = storeData(all_chunks, embeddings)
+            all_chunks,collection  = dbFlow(all_data)
             #Query phase
-            query = input ("What your query?")
-            #Doing sparse & dense search
-            sparse = BM25(all_chunks, query, 5)
-            dense = dense_search(collection, query, 5)
-            # Fusing results of dense & sparse
-            chunks = fuse(dense, sparse)
+            query = input ("What your query? --> ")
+            #Find the best chunks
+            best_chunks = searchFlow(all_chunks, collection, query, 5)
             #generate the out put
-            generate(query,chunks)
-            print()
-            menu()
+            generate(query,best_chunks)
         # Re-query case
         elif (option == '2'):
-            try:
-                if not all_chunks or not collection:
-                    print("One of them is empty or falsy")
-                    print("Please load a document first")
-                    print()
-                    menu()
-            except NameError:
-                print("One of the variables is undefined")
+            
+            if not all_chunks or not collection:
                 print("Please load a document first")
-                print()
-                menu()
             else:
-                query = input ("What your query?")
-                # Doing sparse & dense search
-                sparse = BM25(all_chunks, query, 5)
-                dense = dense_search(collection, query, 5)
-                # Fusing results of dense & sparse
-                chunks = fuse(dense, sparse)
+                query = input ("What your query? --> ")
+                #Find the best chunks
+                best_chunks = searchFlow(all_chunks, collection, query, 5)
                 #Generating result
-                generate(query,chunks)
-                print()
-                menu()
+                generate(query,best_chunks)
         # Invalid input
         else:
             print("Error, unknown command, try again...")
