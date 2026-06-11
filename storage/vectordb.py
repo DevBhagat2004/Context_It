@@ -5,6 +5,16 @@ def init():
     collection = client.get_or_create_collection(name="documents")
     return collection
 
+def collection_to_chunks():
+    collection = init().get()
+    all_chunks = []
+    for i in range(len(collection["ids"])):
+        all_chunks.append({
+                "text" : collection["documents"][i],
+                "metadata": collection["metadatas"][i]
+            })
+    return all_chunks
+
 
 def addData(all_chunks, embeddings, collection):
     documents = []

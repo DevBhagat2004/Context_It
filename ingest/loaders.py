@@ -4,6 +4,7 @@ from ingest.chunker import sendData
 from embeddings.embedder import embed
 from storage.vectordb import storeData
 from storage.vectordb import init
+from storage.vectordb import collection_to_chunks
 from retrieval.dense import dense_search
 from retrieval.sparse import BM25
 from retrieval.fusion import fuse
@@ -48,11 +49,6 @@ def searchFlow(all_chunks, collection, query, size):
     dense = dense_search(collection, query, size)
     return fuse(dense, sparse)
 
-def searchFlow2(collection, query, size):
-    #sparse = BM25(all_chunks, query, size)
-    dense = dense_search(collection, query, size)
-    return dense
-
 if __name__ == "__main__":
     print("Hello Please selected which file you want to process")
     menu()
@@ -84,10 +80,10 @@ if __name__ == "__main__":
                 generate(query,best_chunks)
         elif (option == '3'):
             existing_collection = init()
-            print(existing_collection.count())
+            existing_all_chunks = collection_to_chunks()
             query = input ("What your query? --> ")
             #Find the best chunks
-            best_chunks = searchFlow2(existing_collection, query, 5)
+            best_chunks = searchFlow(existing_all_chunks,existing_collection, query, 5)
             #Generating result
             generate(query,best_chunks)
         # Invalid input
